@@ -19,6 +19,8 @@ while getopts cd:fFh:n:rt2 arg; do
 			hours=$OPTARG ;;
 		n)
 			lines=$OPTARG ;;
+		2)
+			func=succConn ;;
 		*)
 			echo "Option '-$arg' not handled" ;;
 	esac
@@ -72,6 +74,18 @@ calculateLimit() {
 
 conn() {
 	sort -k 1,1 | awk '{ print $1 }' | uniq -c | sort -k 1,1 -rn | awk '{ print $2 " " $1 }'
+}
+
+onlySuccesful() {
+	while read -r dummy1 dummy2 dummy3 dummy4 dummy5 dummy6 dummy7 dummy8 returnCode rest; do
+		if [ $returnCode -ge 200 -a $returnCode -lt 300 ]; then
+			echo "$dummy1 $dummy2 $dummy3 $dummy4 $dummy5 $dummy6 $dummy7 $dummy8 $returnCode $rest"
+		fi
+	done
+}
+
+succConn() {
+	onlySuccesful | conn
 }
 
 processSome() {
