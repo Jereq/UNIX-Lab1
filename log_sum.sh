@@ -7,7 +7,7 @@ if [ $# = 0 ]; then
 	exit 1
 fi
 
-while getopts cd:fFh:n:rt2 arg; do
+while getopts cd:Fh:n:rt2 arg; do
 	case $arg in
 		c)
 			func=conn ;;
@@ -23,6 +23,8 @@ while getopts cd:fFh:n:rt2 arg; do
 			lines=$OPTARG ;;
 		r)
 			func=resCode ;;
+		t)
+			func=byteCount ;;
 		2)
 			func=succConn ;;
 		*)
@@ -109,6 +111,39 @@ resCode() {
 
 failResCode() {
 	filterStatusCode 400 600 | resCode
+}
+
+filterNoBytes() {
+	while read -r dummy1 dummy2 dummy3 dummy4 dummy5 dummy6 dummy7 dummy8 dummy9 bytes rest; do
+		if [ $bytes != '-' ]; then
+			echo "$dummy1 $dummy2 $dummy3 $dummy4 $dummy5 $dummy6 $dummy7 $dummy8 $dummy9 $bytes $rest"
+		fi
+	done
+}
+
+sumBytes() {
+	local prevIp=""
+	local currCount=0
+	
+	while read ip bytes; do
+		if [ x$ip = x$prevIp ]; then
+			currCount=`expr $currCount + $bytes`
+		else
+			if [ $prevIp ]; then
+				echo "$prevIp $currCount"
+			fi
+			currCount=$bytes
+			prevIp=$ip
+		fi
+	done
+	
+	if [ $prevIp ]; then
+		echo "$prevIp $currCount"
+	fi
+}
+
+byteCount() {
+	filterNoBytes | awk '{ print $1 " " $10 }' | sort -k 1,1 | sumBytes | sort -nrk 2,2
 }
 
 processSome() {
