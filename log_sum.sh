@@ -14,6 +14,8 @@ while getopts cd:fFh:n:rt2 arg; do
 		d)
 			timeLimit=True
 			days=$OPTARG ;;
+		F)
+			func=failResCode ;;
 		h)
 			timeLimit=True
 			hours=$OPTARG ;;
@@ -78,12 +80,16 @@ conn() {
 	sort -k 1,1 | awk '{ print $1 }' | uniq -c | sort -k 1,1 -rn | awk '{ print $2 " " $1 }'
 }
 
-onlySuccesful() {
+filterStatusCode() {
 	while read -r dummy1 dummy2 dummy3 dummy4 dummy5 dummy6 dummy7 dummy8 returnCode rest; do
-		if [ $returnCode -ge 200 -a $returnCode -lt 300 ]; then
+		if [ $returnCode -ge $1 -a $returnCode -lt $2 ]; then
 			echo "$dummy1 $dummy2 $dummy3 $dummy4 $dummy5 $dummy6 $dummy7 $dummy8 $returnCode $rest"
 		fi
 	done
+}
+
+onlySuccesful() {
+	filterStatusCode 200 300
 }
 
 succConn() {
@@ -99,9 +105,15 @@ resCode() {
 	rm tmpCodeCount
 }
 
+
+
+failResCode() {
+	filterStatusCode 400 600 | resCode
+}
+
 processSome() {
 	local limit=$(calculateLimit)
-	#local count=0
+	
 	while read ip dummy1 dummy2 date1 date2 rest; do
 		date=$(echo "$date1 $date2" | transformDate)
 		timestamp=$(dateToTimestamp "$date")
@@ -109,10 +121,7 @@ processSome() {
 			break
 		fi
 		echo "$ip $dummy1 $dummy2 $date1 $date2 $rest"
-		#count=`expr $count + 1`
 	done
-
-	#echo $count
 }
 
 processAll () {
@@ -130,7 +139,5 @@ if [ $lines ]; then
 else
 	echo "$fullResult" | column -t
 fi
-
-#echo "Sum: $countedLines"
 
 
