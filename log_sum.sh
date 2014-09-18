@@ -71,7 +71,7 @@ calculateLimit() {
 }
 
 conn() {
-	sort -k 1,1 | awk '{ print $1 }' | uniq -c | sort -k 1,1 -r | awk '{ print $2 " " $1 }'
+	sort -k 1,1 | awk '{ print $1 }' | uniq -c | sort -k 1,1 -rn | awk '{ print $2 " " $1 }'
 }
 
 processSome() {
@@ -95,11 +95,15 @@ processAll () {
 }
 
 if [ $timeLimit ]; then
-	countedLines=$(tac "$input" | processSome | eval "$func")
-	echo "$countedLines" | column -t
+	fullResult=$(tac "$input" | processSome | eval "$func")
 else
-	countedLines=$(eval "$func")
-	echo "No has lines"
+	fullResult=$(eval "$func" < "$input")
+fi
+
+if [ $lines ]; then
+	echo "$fullResult" | head -n $lines | column -t
+else
+	echo "$fullResult" | column -t
 fi
 
 #echo "Sum: $countedLines"
