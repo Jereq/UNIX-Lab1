@@ -19,6 +19,8 @@ while getopts cd:fFh:n:rt2 arg; do
 			hours=$OPTARG ;;
 		n)
 			lines=$OPTARG ;;
+		r)
+			func=resCode ;;
 		2)
 			func=succConn ;;
 		*)
@@ -86,6 +88,15 @@ onlySuccesful() {
 
 succConn() {
 	onlySuccesful | conn
+}
+
+resCode() {
+	cat > inp
+	cat inp | sort -k 9,9 | awk '{ print $9 }' | uniq -c > tmpCodeCount
+	cat inp | awk '{ print $9 " " $1 }' | sort -k 1,1 | uniq \
+		| join -1 2 tmpCodeCount - | sort -k 2,2 | awk '{ print $1 " " $3 }'
+	rm inp
+	rm tmpCodeCount
 }
 
 processSome() {
