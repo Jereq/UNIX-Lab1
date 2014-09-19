@@ -13,14 +13,32 @@ while getopts cd:Fh:n:rt2 arg; do
 			func=conn ;;
 		d)
 			timeLimit=True
-			days=$OPTARG ;;
+			case $OPTARG in
+				''|*[!0-9]*)
+					echo $usage
+					exit 1;;
+				*) 
+					days=$OPTARG;;
+			esac;;
 		F)
 			func=failResCode ;;
 		h)
 			timeLimit=True
-			hours=$OPTARG ;;
+			case $OPTARG in
+				''|*[!0-9]*)
+					echo $usage
+					exit 1;;
+				*) 
+					hours=$OPTARG;;
+			esac;;
 		n)
-			lines=$OPTARG ;;
+			case $OPTARG in
+				''|*[!0-9]*)
+					echo $usage
+					exit 1;;
+				*) 
+					lines=$OPTARG;;
+			esac;;
 		r)
 			func=resCode ;;
 		t)
