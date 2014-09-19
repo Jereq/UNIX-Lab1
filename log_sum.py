@@ -33,6 +33,18 @@ def resCode(inputFile):
 		
 	return resArr
 
+def byteCount(inputFile):
+	res = dict()
+	for line in inputFile:
+		columns = line.split(" ")
+		if columns[9] != '-':
+			try:
+				res[columns[0]] = res[columns[0]] + int(columns[9])
+			except KeyError:
+				res[columns[0]] = int(columns[9])
+				
+	return sorted(res.iteritems(), reverse = True, key=operator.itemgetter(1))
+			
 def filterStatusCode(inputLines, minInc, maxExc):
 	res = []
 	for line in inputLines:
@@ -44,6 +56,9 @@ def filterStatusCode(inputLines, minInc, maxExc):
 
 def failResCode(inputFile):
 	return resCode(filterStatusCode(inputFile, 400, 600))
+
+def succResCode(inputFile):
+	return conn(filterStatusCode(inputFile, 200, 300))
 
 def extractDate(row):
 	columns = row.split(" ")
@@ -104,9 +119,9 @@ def main(argv):
 			elif opt == "-r":
 				func = resCode
 			elif opt == "-t":
-				print "-t"
+				func = byteCount
 			elif opt == "-2":
-				print "-2"
+				func = succResCode
 	except ValueError:
 		print usage
 		sys.exit(1)
