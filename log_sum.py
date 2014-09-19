@@ -80,31 +80,36 @@ def filterOnTime(inputLines, timeLimit):
 		
 def main(argv):
 	timeLimit = "None"
+	lines = -1
 	
 	try:
 		opts, args = getopt.getopt(argv, "cd:Fh:n:rt2")
 	except getopt.GetoptError:
 		print usage
 		sys.exit(1)
-	for opt, arg in opts:
-		if opt == "-c":
-			func=conn
-		elif opt == "-d":
-			timeLimit = "Days"
-			days = int(arg)
-		elif opt == "-F":
-			func = failResCode
-		elif opt == "-h":
-			timeLimit = "Hours"
-			hour = int(arg)
-		elif opt == "-n":
-			print arg
-		elif opt == "-r":
-			func = resCode
-		elif opt == "-t":
-			print "-t"
-		elif opt == "-2":
-			print "-2"
+	try:
+		for opt, arg in opts:
+			if opt == "-c":
+				func=conn
+			elif opt == "-d":
+				timeLimit = "Days"
+				days = int(arg)
+			elif opt == "-F":
+				func = failResCode
+			elif opt == "-h":
+				timeLimit = "Hours"
+				hour = int(arg)
+			elif opt == "-n":
+				lines = int(arg)
+			elif opt == "-r":
+				func = resCode
+			elif opt == "-t":
+				print "-t"
+			elif opt == "-2":
+				print "-2"
+	except ValueError:
+		print usage
+		sys.exit(1)
 	
 	if len(args) == 0:
 		inputFile="/dev/stdin"
@@ -130,12 +135,15 @@ def main(argv):
 	else:
 		result = func(_file)
 		
-	if len(result) == 0:
+	if len(result) == 0 or lines == 0:
 		exit(0)
 		
-	ipColWidth = max(len(row[0]) for row in result)
-	countColWidth = max(len(str(row[1])) for row in result)
-	for item in result:
+	if lines == -1:
+		lines = len(result)
+		
+	ipColWidth = max(len(row[0]) for row in result[:lines])
+	countColWidth = max(len(str(row[1])) for row in result[:lines])
+	for item in result[:lines]:
 		print item[0].ljust(ipColWidth) + "  " + str(item[1]).rjust(countColWidth)
 	
 if __name__ == "__main__":
