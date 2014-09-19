@@ -14,7 +14,37 @@ def conn(inputFile):
 		except KeyError:
 			ipDict[columns[0]] = 1
 	return sorted(ipDict.iteritems(), reverse = True, key=operator.itemgetter(1))
-	
+
+def resCode(inputFile):
+	resDict = dict()
+	for line in inputFile:
+		columns = line.split(" ")
+		statusCode = int(columns[8])
+		try:
+			resDict[statusCode][0] = resDict[statusCode][0] + 1
+			resDict[statusCode][1].add(columns[0])
+		except KeyError:
+			resDict[statusCode] = [1, {columns[0]}]
+			
+	resArr = []
+	for err, count in sorted(resDict.iteritems(), reverse = True, key=operator.itemgetter(1, 0)):
+		for ip in count[1]:
+			resArr.append([str(err), ip])
+		
+	return resArr
+
+def filterStatusCode(inputLines, minInc, maxExc):
+	res = []
+	for line in inputLines:
+		columns = line.split(" ")
+		statusCode = int(columns[8])
+		if statusCode >= minInc and statusCode < maxExc:
+			res.append(line)
+	return res
+
+def failResCode(inputFile):
+	return resCode(filterStatusCode(inputFile, 400, 600))
+
 def extractDate(row):
 	columns = row.split(" ")
 	return columns[3] + " " + columns[4]
@@ -63,14 +93,14 @@ def main(argv):
 			timeLimit = "Days"
 			days = int(arg)
 		elif opt == "-F":
-			print "-F"
+			func = failResCode
 		elif opt == "-h":
 			timeLimit = "Hours"
 			hour = int(arg)
 		elif opt == "-n":
 			print arg
 		elif opt == "-r":
-			print "-r"
+			func = resCode
 		elif opt == "-t":
 			print "-t"
 		elif opt == "-2":
@@ -99,6 +129,10 @@ def main(argv):
 		result = func(_input)
 	else:
 		result = func(_file)
+		
+	if len(result) == 0:
+		exit(0)
+		
 	ipColWidth = max(len(row[0]) for row in result)
 	countColWidth = max(len(str(row[1])) for row in result)
 	for item in result:
