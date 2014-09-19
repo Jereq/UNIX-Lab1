@@ -56,13 +56,9 @@ fi
 shift $((OPTIND - 1))
 
 if [ $# = 0 ]; then
-	input=/dev/stdin
+	input='-'
 elif [ $# = 1 ]; then
-	if [ $1 = - ]; then
-		input=/dev/stdin
-	else
-		input="$1"
-	fi
+	input="$1"
 else
 	echo "Invalid arguments"
 	echo $usage
@@ -82,7 +78,7 @@ dateToTimestamp() {
 }
 
 calculateLimit() {
-	lastDate=$(tail -n1 "$input" | extractDate | transformDate)
+	lastDate=$(echo "$1" | extractDate | transformDate)
 	
 	if [ $days ]; then
 		midnight=$(date --date="$lastDate -$((days - 1)) days" +%D)
@@ -162,8 +158,11 @@ byteCount() {
 }
 
 processSome() {
-	local limit=$(calculateLimit)
+	read lastLine
+	local limit=$(calculateLimit "$lastLine")
 	
+	echo "$lastLine"
+
 	while read ip dummy1 dummy2 date1 date2 rest; do
 		date=$(echo "$date1 $date2" | transformDate)
 		timestamp=$(dateToTimestamp "$date")
@@ -174,14 +173,10 @@ processSome() {
 	done
 }
 
-processAll () {
-	echo "Hej"
-}
-
 if [ $timeLimit ]; then
 	fullResult=$(tac "$input" | processSome | eval "$func")
 else
-	fullResult=$(eval "$func" < "$input")
+	fullResult=$(cat "$input" | eval "$func")
 fi
 
 if [ $lines ]; then

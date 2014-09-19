@@ -127,19 +127,19 @@ def main(argv):
 		sys.exit(1)
 	
 	if len(args) == 0:
-		inputFile="/dev/stdin"
+		inputFile = sys.stdin
 	elif len(args) == 1:
 		if args[0] == '-':
-			inputFile="/dev/stdin"
+			inputFile = sys.stdin
 		else:
-			inputFile=args[0]
+			inputFile = open(args[0])
 	else:
 		print "Invalid arguments"
 		print usage
 		exit(1)
-	_file = open(inputFile, "r")
+	
 	if timeLimit != "None":
-		_input = _file.readlines()
+		_input = inputFile.readlines()
 		_input.reverse()
 		if timeLimit == "Days":
 			timeStamp = calculateLimit(_input, days=days)
@@ -148,7 +148,7 @@ def main(argv):
 		_input = filterOnTime(_input, timeStamp)
 		result = func(_input)
 	else:
-		result = func(_file)
+		result = func(inputFile)
 		
 	if len(result) == 0 or lines == 0:
 		exit(0)
