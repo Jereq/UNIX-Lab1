@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import sys, getopt, operator
+import sys, getopt, operator, datetime
+from dateutil.parser import *
 
 usage = sys.argv[0] + " [-n N] [-h H | -d D] (-c | -2 | -r | -F | -t | -f) <filename>"
 
@@ -14,8 +15,42 @@ def conn(inputFile):
 			ipDict[columns[0]] = 1
 	return sorted(ipDict.iteritems(), reverse = True, key=operator.itemgetter(1))
 	
-
+def extractDate(row):
+	columns = row.split(" ")
+	return columns[3] + " " + columns[4]
+	
+def transformDate(dateString):
+	dateString = dateString.replace('/', ' ')
+	dateString = dateString[1:-1]
+	dateString = dateString[:11] + ' ' + dateString[12:]
+	
+	return parse(dateString)
+	
+def calculateLimit(inputFile, days=0, hours=0):
+	lastDate = extractDate(inputFile[0])
+	
+	date = transformDate(lastDate)
+	if hours:
+		return date - datetime.timedelta(hours=hours)
+	else:
+		midnight = date.replace(hour=0, minute=0, second=0)
+		return midnight - datetime.timedelta(days - 1)
+		
+	
+def filterOnTime(inputLines, timeLimit):
+	count = 0
+	while True:
+		dateStr = extractDate(inputLines[count])
+		date = transformDate(dateStr)
+		if date < timeLimit:
+			break
+		count = count + 1
+			
+	return inputLines[:count]
+		
 def main(argv):
+	timeLimit = "None"
+	
 	try:
 		opts, args = getopt.getopt(argv, "cd:Fh:n:rt2")
 	except getopt.GetoptError:
@@ -25,11 +60,13 @@ def main(argv):
 		if opt == "-c":
 			func=conn
 		elif opt == "-d":
-			print arg
+			timeLimit = "Days"
+			days = int(arg)
 		elif opt == "-F":
 			print "-F"
 		elif opt == "-h":
-			print arg
+			timeLimit = "Hours"
+			hour = int(arg)
 		elif opt == "-n":
 			print arg
 		elif opt == "-r":
@@ -51,7 +88,17 @@ def main(argv):
 		print usage
 		exit(1)
 	_file = open(inputFile, "r")
-	result = func(_file)
+	if timeLimit != "None":
+		_input = _file.readlines()
+		_input.reverse()
+		if timeLimit == "Days":
+			timeStamp = calculateLimit(_input, days=days)
+		else:
+			timeStamp = calculateLimit(_input, hours=hour)
+		_input = filterOnTime(_input, timeStamp)
+		result = func(_input)
+	else:
+		result = func(_file)
 	ipColWidth = max(len(row[0]) for row in result)
 	countColWidth = max(len(str(row[1])) for row in result)
 	for item in result:
