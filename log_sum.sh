@@ -7,38 +7,35 @@ if [ $# = 0 ]; then
 	exit 1
 fi
 
+verifyNum() {
+	case $1 in
+		''|*[!0-9]*)
+			echo $usage
+			exit 1
+			;;
+	esac
+}
+
 while getopts cd:Fh:n:rt2 arg; do
 	case $arg in
 		c)
 			func=conn ;;
 		d)
 			timeLimit=True
-			case $OPTARG in
-				''|*[!0-9]*)
-					echo $usage
-					exit 1;;
-				*) 
-					days=$OPTARG;;
-			esac;;
+			verifyNum $OPTARG
+			days=$OPTARG
+			;;
 		F)
 			func=failResCode ;;
 		h)
 			timeLimit=True
-			case $OPTARG in
-				''|*[!0-9]*)
-					echo $usage
-					exit 1;;
-				*) 
-					hours=$OPTARG;;
-			esac;;
+			verifyNum $OPTARG
+			hours=$OPTARG
+			;;
 		n)
-			case $OPTARG in
-				''|*[!0-9]*)
-					echo $usage
-					exit 1;;
-				*) 
-					lines=$OPTARG;;
-			esac;;
+			verifyNum $OPTARG
+			lines=$OPTARG
+			;;
 		r)
 			func=resCode ;;
 		t)
