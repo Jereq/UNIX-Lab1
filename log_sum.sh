@@ -102,7 +102,7 @@ resCode() {
 	cat > inp
 	cat inp | sort -k 9,9 | awk '{ print $9 }' | uniq -c > tmpCodeCount
 	cat inp | awk '{ print $9 " " $1 }' | sort -k 1,1 | uniq \
-		| join -1 2 tmpCodeCount - | sort -k 2,2 | awk '{ print $1 " " $3 }'
+		| join -1 2 tmpCodeCount - | sort -nrk 2,2 | awk '{ print $1 " " $3 }'
 	rm inp
 	rm tmpCodeCount
 }
