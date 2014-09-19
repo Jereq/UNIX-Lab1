@@ -126,17 +126,15 @@ def main(argv):
 		print usage
 		sys.exit(1)
 	
-	if len(args) == 0:
-		inputFile = sys.stdin
-	elif len(args) == 1:
-		if args[0] == '-':
-			inputFile = sys.stdin
-		else:
-			inputFile = open(args[0])
-	else:
+	if len(args) > 1:
 		print "Invalid arguments"
 		print usage
 		exit(1)
+		
+	if len(args) == 0 or args[0] == '-':
+		inputFile = sys.stdin
+	else:
+		inputFile = open(args[0])
 	
 	if timeLimit != "None":
 		_input = inputFile.readlines()
