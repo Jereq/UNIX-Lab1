@@ -84,8 +84,8 @@ def calculateLimit(inputFile, days=0, hours=0):
 	
 def filterOnTime(inputLines, timeLimit):
 	count = 0
-	while True:
-		dateStr = extractDate(inputLines[count])
+	for line in inputLines:
+		dateStr = extractDate(line)
 		date = transformDate(dateStr)
 		if date < timeLimit:
 			break
