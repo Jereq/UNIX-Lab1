@@ -96,6 +96,7 @@ def filterOnTime(inputLines, timeLimit):
 def main(argv):
 	timeLimit = "None"
 	lines = -1
+	func = None
 	
 	try:
 		opts, args = getopt.getopt(argv, "cd:Fh:n:rt2")
@@ -125,6 +126,11 @@ def main(argv):
 	except ValueError:
 		print usage
 		sys.exit(1)
+		
+	if func == None:
+		print "Missing criteria"
+		print usage
+		exit(1)
 	
 	if len(args) > 1:
 		print "Invalid arguments"
