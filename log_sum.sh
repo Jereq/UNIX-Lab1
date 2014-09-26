@@ -66,11 +66,15 @@ else
 fi
 
 extractDate() {
-	awk '{ print $4 " " $5 }'
+	awk '{ print $4 " " $5 }' << EOF
+$1
+EOF
 }
 
 transformDate() {
-	sed "s:/: :g;s/:/ /;s/[][]//g"
+	sed "s:/: :g;s/:/ /;s/[][]//g" << EOF
+$1
+EOF
 }
 
 dateToTimestamp() {
@@ -78,7 +82,7 @@ dateToTimestamp() {
 }
 
 calculateLimit() {
-	lastDate=$(echo "$1" | extractDate | transformDate)
+	lastDate=$(transformDate "$(extractDate "$1")")
 	
 	if [ $days ]; then
 		midnight=$(date --date="$lastDate -$((days - 1)) days" +%D)
@@ -118,8 +122,6 @@ resCode() {
 	rm tmpCodeCount
 }
 
-
-
 failResCode() {
 	filterStatusCode 400 600 | resCode
 }
@@ -157,20 +159,27 @@ byteCount() {
 	filterNoBytes | awk '{ print $1 " " $10 }' | sort -k 1,1 | sumBytes | sort -nrk 2,2
 }
 
+transformDates() {
+	sed "s_\[\(..\)/\(...\)/\(....\):\(..............\)\]_\1 \2 \3 \4_"
+}
+
+stopAtDate() {
+	while read -r dummy1 dummy2 dummy3 d1 d2 d3 d4 d5 rest; do
+		timestamp=$(dateToTimestamp "$d1 $d2 $d3 $d4 $d5")
+		if [ $timestamp -lt $1 ]; then
+			break
+		fi
+		echo "$dummy1 $dummy2 $dummy3 [$d1/$d2/$d3:$d4 $d5] $rest"
+	done
+}
+
 processSome() {
 	read lastLine
 	local limit=$(calculateLimit "$lastLine")
 	
 	echo "$lastLine"
 
-	while read ip dummy1 dummy2 date1 date2 rest; do
-		date=$(echo "$date1 $date2" | transformDate)
-		timestamp=$(dateToTimestamp "$date")
-		if [ $timestamp -lt $limit ]; then
-			break
-		fi
-		echo "$ip $dummy1 $dummy2 $date1 $date2 $rest"
-	done
+	transformDates | stopAtDate "$limit"
 }
 
 if [ $timeLimit ]; then
@@ -184,5 +193,3 @@ if [ $lines ]; then
 else
 	echo "$fullResult" | column -t
 fi
-
-
