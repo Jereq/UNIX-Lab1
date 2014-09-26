@@ -114,12 +114,15 @@ succConn() {
 }
 
 resCode() {
-	cat > inp
-	cat inp | sort -k 9,9 | awk '{ print $9 }' | uniq -c > tmpCodeCount
-	cat inp | awk '{ print $9 " " $1 }' | sort -k 1,1 | uniq \
-		| join -1 2 tmpCodeCount - | sort -nrk 2,2 | awk '{ print $1 " " $3 }'
-	rm inp
-	rm tmpCodeCount
+	tmpInput=$(mktemp)
+	tmpCodeCount=$(mktemp)
+	
+	trap 'rm $tmpInput $tmpCodeCount' 0 1 2 3 15
+	
+	cat > $tmpInput
+	cat $tmpInput | sort -k 9,9 | awk '{ print $9 }' | uniq -c > $tmpCodeCount
+	cat $tmpInput | awk '{ print $9 " " $1 }' | sort -k 1,1 | uniq \
+		| join -1 2 $tmpCodeCount - | sort -nrk 2,2 | awk '{ print $1 " " $3 }'
 }
 
 failResCode() {
